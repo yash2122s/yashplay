@@ -17,7 +17,7 @@ const movieData = {
             vote_average: 8.5,
             quality: "4K",
             description: "A professional killer's life changes after being falsely accused of killing a politician.",
-            type: "local"  // Add type to differentiate
+            type: "local"
         },
         {
             title: "Atharintiki Daaredi",
@@ -25,7 +25,7 @@ const movieData = {
             vote_average: 8.2,
             quality: "4K", 
             description: "A grandson tries to reunite his father and grandmother.",
-            language: "telugu"
+            type: "local"
         },
         {
             title: "DJ Tillu",
@@ -33,7 +33,7 @@ const movieData = {
             vote_average: 7.8,
             quality: "4K",
             description: "A DJ gets entangled in a crime investigation.",
-            language: "telugu"
+            type: "local"
         },
         {
             title: "EEGA",
@@ -41,7 +41,7 @@ const movieData = {
             vote_average: 8.4,
             quality: "4K",
             description: "A man reincarnated as a fly seeks revenge against his killer.",
-            language: "telugu"
+            type: "local"
         },
         {
             title: "Vedam",
@@ -49,7 +49,7 @@ const movieData = {
             vote_average: 8.3,
             quality: "4K",
             description: "Five different people's lives intersect during a terrorist attack.",
-            language: "telugu"
+            type: "local"
         }
     ],
     api: [] // Will be populated from API
@@ -108,7 +108,6 @@ class MovieUI {
         const modal = document.getElementById('watchModal');
         if (!modal) return;
 
-        // Update modal content
         modal.querySelector('.movie-title').textContent = movie.title;
         modal.querySelector('.quality').textContent = movie.quality || 'HD';
         modal.querySelector('.rating').innerHTML = 
@@ -118,9 +117,8 @@ class MovieUI {
         modal.querySelector('.description').textContent = 
             movie.description || movie.overview;
 
-        // Show modal
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
     }
 
     static closeModal() {
@@ -128,7 +126,7 @@ class MovieUI {
         if (!modal) return;
         
         modal.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scrolling
+        document.body.style.overflow = '';
     }
 }
 
@@ -144,36 +142,27 @@ class PageManager {
         console.log('Loading page:', page);
         console.log('Total movies available:', movies.length);
         
-        // Calculate pagination
-        const startIndex = (this.currentPage - 1) * this.moviesPerPage;
-        const endIndex = startIndex + this.moviesPerPage;
-        const paginatedMovies = movies.slice(startIndex, endIndex);
-        
         const container = document.querySelector(`#${page}-page`);
         if (!container) return;
 
         switch(page) {
             case 'home':
-                // Show trending in hero section
-                const heroMovie = trending[Math.floor(Math.random() * trending.length)];
-                if (heroMovie) {
-                    this.updateHeroSection(heroMovie);
-                }
-                
-                // Display featured movies (latest)
                 MovieUI.displayMovies(
-                    movies.slice(0, 12), // Show first 12 movies
+                    movies.slice(0, 12),
                     container.querySelector('.featured .movie-grid')
                 );
                 
-                // Display trending movies
                 MovieUI.displayMovies(
-                    trending.slice(0, 12), // Show first 12 trending movies
+                    trending.slice(0, 12),
                     container.querySelector('.trending .movie-grid')
                 );
                 break;
 
             case 'movies':
+                const startIndex = (this.currentPage - 1) * this.moviesPerPage;
+                const endIndex = startIndex + this.moviesPerPage;
+                const paginatedMovies = movies.slice(startIndex, endIndex);
+                
                 MovieUI.displayMovies(
                     paginatedMovies,
                     container.querySelector('.all-movies .movie-grid')
@@ -187,31 +176,6 @@ class PageManager {
                     container.querySelector('.trending-all .movie-grid')
                 );
                 break;
-        }
-    }
-
-    static updateHeroSection(movie) {
-        const hero = document.querySelector('.hero');
-        if (!hero) return;
-
-        const backdropPath = movie.backdrop_path 
-            ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
-            : 'assets/images/default-hero.jpg';
-
-        hero.style.backgroundImage = `
-            linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-            url('${backdropPath}')
-        `;
-
-        const heroContent = hero.querySelector('.hero-content');
-        if (heroContent) {
-            heroContent.innerHTML = `
-                <h1>${movie.title}</h1>
-                <p>${movie.overview || movie.description}</p>
-                <button class="watch-now" onclick="MovieUI.openModal(${JSON.stringify(movie)})">
-                    Watch Now
-                </button>
-            `;
         }
     }
 
@@ -237,11 +201,61 @@ class PageManager {
         this.currentPage = newPage;
         this.loadPage('movies');
     }
+}
 
-    static getCurrentPage() {
-        const activePage = document.querySelector('.page.active');
-        return activePage ? activePage.id.replace('-page', '') : 'home';
+// Initialize App
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM Content Loaded');
+    
+    // Initialize components
+    initializeNavigation();
+    
+    // Load initial page
+    PageManager.loadPage('home');
+
+    // Modal event listeners
+    const modal = document.getElementById('watchModal');
+    const closeButton = document.querySelector('.close-modal');
+    
+    if (closeButton) {
+        closeButton.addEventListener('click', MovieUI.closeModal);
     }
+    
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) MovieUI.closeModal();
+        });
+    }
+
+    // Keyboard events
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.classList.contains('active')) {
+            MovieUI.closeModal();
+        }
+    });
+});
+
+// Navigation initialization
+function initializeNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetPage = link.dataset.page;
+
+            navLinks.forEach(l => l.classList.remove('active'));
+            pages.forEach(p => p.classList.remove('active'));
+            
+            link.classList.add('active');
+            const targetElement = document.getElementById(`${targetPage}-page`);
+            if (targetElement) {
+                targetElement.classList.add('active');
+                PageManager.loadPage(targetPage);
+            }
+        });
+    });
 }
 
 // Event Handlers
@@ -280,28 +294,6 @@ function initializeLanguageSelector() {
         if (!e.target.closest('.language-select')) {
             languageOptions.style.display = 'none';
         }
-    });
-}
-
-function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const pages = document.querySelectorAll('.page');
-
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetPage = link.dataset.page;
-
-            navLinks.forEach(l => l.classList.remove('active'));
-            pages.forEach(p => p.classList.remove('active'));
-            
-            link.classList.add('active');
-            const targetElement = document.getElementById(`${targetPage}-page`);
-            if (targetElement) {
-                targetElement.classList.add('active');
-                PageManager.loadPage(targetPage);
-            }
-        });
     });
 }
 
@@ -347,3 +339,15 @@ async function testApiKey() {
     try {
         const response = await fetch(
             `https://api.themoviedb.org/3/movie/now_playing?api_key=${config.apiKey}`
+        );
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('API key test successful');
+        return true;
+    } catch (error) {
+        console.error('Error testing API key:', error);
+        return false;
+    }
+}
