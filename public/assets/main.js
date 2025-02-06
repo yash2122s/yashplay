@@ -85,6 +85,26 @@ class MovieUI {
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        // Add event listeners for closing
+        const closeButton = modal.querySelector('.close-modal');
+        if (closeButton) {
+            closeButton.addEventListener('click', MovieUI.closeModal);
+        }
+
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                MovieUI.closeModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                MovieUI.closeModal();
+            }
+        });
     }
 
     static closeModal() {
@@ -93,6 +113,15 @@ class MovieUI {
         
         modal.classList.remove('active');
         document.body.style.overflow = '';
+
+        // Remove event listeners
+        const closeButton = modal.querySelector('.close-modal');
+        if (closeButton) {
+            closeButton.removeEventListener('click', MovieUI.closeModal);
+        }
+
+        modal.removeEventListener('click', MovieUI.closeModal);
+        document.removeEventListener('keydown', MovieUI.closeModal);
     }
 }
 
