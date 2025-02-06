@@ -300,7 +300,7 @@ function initializeNavigation() {
 }
 
 // Import the config
-import config from '../js/config.js';
+import config from './config.js';
 
 async function fetchEnglishMovies(pages = 3) { // Fetch first 3 pages by default
     try {
