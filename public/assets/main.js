@@ -2,10 +2,10 @@
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const FALLBACK_IMAGE = '/assets/images/no-image.jpg';
 
-// Replace the config import with environment variables
+// Replace environment variables with defined constants
 const config = {
-    apiKey: process.env.VITE_API_KEY,
-    accessToken: process.env.VITE_ACCESS_TOKEN
+    apiKey: __API_KEY__,
+    accessToken: __ACCESS_TOKEN__
 };
 
 // Movie data
