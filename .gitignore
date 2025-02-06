@@ -16,6 +16,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Keep images
-!assets/images/*.jpg
-!assets/images/*.png 
+# Keep all images
+!public/assets/images/ 
