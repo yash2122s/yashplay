@@ -1,6 +1,7 @@
 // Constants
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const FALLBACK_IMAGE = '/public/assets/images/no-image.jpg';
+const STREAM_URL = 'https://streamruby.com/';
 
 // API Configuration
 const config = {
@@ -10,8 +11,9 @@ const config = {
 
 // Movie data
 const movieData = {
-    movies: [], // Removed local movies
-    api: [] // Will be populated from API
+    movies: [], // English movies from API
+    teluguMovies: [], // Telugu movies from API
+    api: [] // Other API movies
 };
 
 // App state
@@ -74,6 +76,9 @@ class MovieUI {
         const modal = document.getElementById('watchModal');
         if (!modal) return;
 
+        // Get video ID based on movie title
+        const videoId = MovieUI.getVideoId(movie.title);
+
         modal.querySelector('.movie-title').textContent = movie.title;
         modal.querySelector('.quality').textContent = movie.quality || 'HD';
         modal.querySelector('.rating').innerHTML = 
@@ -83,23 +88,42 @@ class MovieUI {
         modal.querySelector('.description').textContent = 
             movie.description || movie.overview;
 
+        // Add video player if ID exists
+        const playerContainer = modal.querySelector('.video-container');
+        if (videoId) {
+            playerContainer.innerHTML = `
+                <iframe 
+                    src="${STREAM_URL}${videoId}"
+                    allowfullscreen
+                    frameborder="0"
+                    width="100%"
+                    height="400px">
+                </iframe>
+            `;
+        } else {
+            playerContainer.innerHTML = `
+                <div class="player-placeholder">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Video not available</span>
+                </div>
+            `;
+        }
+
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        // Add event listeners for closing
+        // Add close handlers
         const closeButton = modal.querySelector('.close-modal');
         if (closeButton) {
             closeButton.addEventListener('click', MovieUI.closeModal);
         }
 
-        // Close on outside click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 MovieUI.closeModal();
             }
         });
 
-        // Close on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('active')) {
                 MovieUI.closeModal();
@@ -123,6 +147,16 @@ class MovieUI {
         modal.removeEventListener('click', MovieUI.closeModal);
         document.removeEventListener('keydown', MovieUI.closeModal);
     }
+
+    static getVideoId(title) {
+        // This would be your mapping of movie titles to StreamRuby video IDs
+        const videoMap = {
+            'Movie Title 1': 'video_id_1',
+            'Movie Title 2': 'video_id_2',
+            // Add more mappings as needed
+        };
+        return videoMap[title] || null;
+    }
 }
 
 // Page Manager
@@ -131,48 +165,50 @@ class PageManager {
     static currentPage = 1;
 
     static loadPage(page) {
-        const movies = [...(movieData.movies || []), ...(movieData.api || [])];
-        const trending = movies.filter(m => m.vote_average >= 7.5);
+        const allMovies = [...movieData.api];
+        const teluguMovies = [...movieData.teluguMovies];
+        const trending = allMovies.filter(m => m.vote_average >= 7.5);
         
         console.log('Loading page:', page);
-        console.log('Total movies available:', movies.length);
+        console.log('Total movies available:', allMovies.length);
+        console.log('Telugu movies available:', teluguMovies.length);
         
         const container = document.querySelector(`#${page}-page`);
-        if (!container) {
-            console.error(`Container not found for page: ${page}`);
-            return;
-        }
+        if (!container) return;
 
         switch(page) {
             case 'home':
-                const featuredContainer = container.querySelector('.featured .movie-grid');
-                const trendingContainer = container.querySelector('.trending .movie-grid');
-                
-                if (featuredContainer) {
+                // Display Telugu movies section
+                const teluguContainer = container.querySelector('.telugu-movies .movie-grid');
+                if (teluguContainer) {
                     MovieUI.displayMovies(
-                        movies.slice(0, 12),
-                        featuredContainer
+                        teluguMovies.slice(0, 12),
+                        teluguContainer
                     );
                 }
                 
-                if (trendingContainer) {
-                    MovieUI.displayMovies(
-                        trending.slice(0, 12),
-                        trendingContainer
-                    );
-                }
+                // Display other sections
+                MovieUI.displayMovies(
+                    allMovies.slice(0, 12),
+                    container.querySelector('.featured .movie-grid')
+                );
+                
+                MovieUI.displayMovies(
+                    trending.slice(0, 12),
+                    container.querySelector('.trending .movie-grid')
+                );
                 break;
 
             case 'movies':
                 const startIndex = (this.currentPage - 1) * this.moviesPerPage;
                 const endIndex = startIndex + this.moviesPerPage;
-                const paginatedMovies = movies.slice(startIndex, endIndex);
+                const paginatedMovies = allMovies.slice(startIndex, endIndex);
                 
                 MovieUI.displayMovies(
                     paginatedMovies,
                     container.querySelector('.all-movies .movie-grid')
                 );
-                this.updatePagination(movies.length);
+                this.updatePagination(allMovies.length);
                 break;
 
             case 'trending':
@@ -216,23 +252,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Test API key first
         const apiWorking = await testApiKey();
         if (apiWorking) {
-            // Fetch English movies from TMDB
-            const apiMovies = await fetchEnglishMovies();
+            // Fetch both English and Telugu movies
+            const [apiMovies, teluguMovies] = await Promise.all([
+                fetchEnglishMovies(),
+                fetchTeluguMovies()
+            ]);
+            
             console.log('Fetched API movies:', apiMovies.length);
+            console.log('Fetched Telugu movies:', teluguMovies.length);
+            
             movieData.api = apiMovies;
+            movieData.teluguMovies = teluguMovies;
         }
 
-        // Initialize the first page load
+        // Initialize components
+        initializeNavigation();
+        
+        // Load initial page
         const activePage = document.querySelector('.nav-link.active');
         if (activePage) {
             PageManager.loadPage(activePage.dataset.page);
         } else {
             PageManager.loadPage('home');
         }
-
-        // Initialize components
-        initializeNavigation();
-        initializeLanguageSelector();
         
     } catch (error) {
         console.error('Error initializing:', error);
@@ -335,6 +377,38 @@ async function fetchEnglishMovies(pages = 3) { // Fetch first 3 pages by default
         
     } catch (error) {
         console.error('Error fetching movies:', error);
+        return [];
+    }
+}
+
+async function fetchTeluguMovies() {
+    try {
+        const response = await fetch(
+            `https://api.themoviedb.org/3/discover/movie?api_key=${config.apiKey}&with_original_language=te&sort_by=popularity.desc&year=2019`
+        );
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        const processedMovies = data.results.map(movie => ({
+            title: movie.title,
+            poster_path: movie.poster_path,
+            overview: movie.overview,
+            release_date: movie.release_date,
+            vote_average: movie.vote_average,
+            quality: movie.vote_average > 7 ? "4K" : "HD",
+            description: movie.overview,
+            language: "telugu"
+        }));
+        
+        console.log(`Fetched ${processedMovies.length} Telugu movies`);
+        return processedMovies;
+        
+    } catch (error) {
+        console.error('Error fetching Telugu movies:', error);
         return [];
     }
 }
