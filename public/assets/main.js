@@ -8,16 +8,16 @@ const config = {
     accessToken: __ACCESS_TOKEN__
 };
 
-// Movie data by language
+// Movie data
 const movieData = {
-    telugu: [
+    movies: [
         {
             title: "Athadu",
             poster_path: "Athadu.jpg", 
             vote_average: 8.5,
             quality: "4K",
             description: "A professional killer's life changes after being falsely accused of killing a politician.",
-            language: "telugu"
+            type: "local"  // Add type to differentiate
         },
         {
             title: "Atharintiki Daaredi",
@@ -52,7 +52,7 @@ const movieData = {
             language: "telugu"
         }
     ],
-    english: [] // Will be populated from API
+    api: [] // Will be populated from API
 };
 
 // App state
@@ -65,12 +65,12 @@ class MovieUI {
         movieCard.className = 'movie-card';
         
         let imagePath;
-        if (movie.language === 'english') {
+        if (movie.type === 'local') {
+            imagePath = `/assets/images/${movie.poster_path}`;
+        } else {
             imagePath = movie.poster_path 
                 ? `${IMAGE_BASE_URL}${movie.poster_path}`
                 : FALLBACK_IMAGE;
-        } else {
-            imagePath = `/assets/images/${movie.poster_path}`;
         }
         
         console.log('Creating card for:', movie.title, 'with image:', imagePath);
@@ -138,7 +138,7 @@ class PageManager {
     static currentPage = 1;
 
     static loadPage(page) {
-        const movies = [...(movieData.telugu || []), ...(movieData.english || [])];
+        const movies = [...(movieData.movies || []), ...(movieData.api || [])];
         const trending = movies.filter(m => m.vote_average >= 7.5);
         
         console.log('Loading page:', page);
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fetch English movies from TMDB
     const englishMovies = await fetchEnglishMovies();
     console.log('Fetched English movies:', englishMovies.length);
-    movieData.english = englishMovies;
+    movieData.api = englishMovies;
     
     // Initialize components
     initializeNavigation();
