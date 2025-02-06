@@ -2,6 +2,12 @@
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const FALLBACK_IMAGE = 'assets/images/no-image.jpg';
 
+// Replace the config import with direct constants
+const config = {
+    apiKey: __API_KEY__,
+    accessToken: __ACCESS_TOKEN__
+};
+
 // Movie data by language
 const movieData = {
     telugu: [
@@ -298,9 +304,6 @@ function initializeNavigation() {
         });
     });
 }
-
-// Import the config
-import config from './config.js';
 
 async function fetchEnglishMovies(pages = 3) { // Fetch first 3 pages by default
     try {
