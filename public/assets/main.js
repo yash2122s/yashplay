@@ -1,6 +1,6 @@
 // Constants
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-const FALLBACK_IMAGE = '/assets/images/no-image.jpg';
+const FALLBACK_IMAGE = '/public/assets/images/no-image.jpg';
 
 // API Configuration
 const config = {
@@ -13,7 +13,7 @@ const movieData = {
     movies: [
         {
             title: "Athadu",
-            poster_path: "Athadu.jpg", 
+            poster_path: "/public/assets/images/Athadu.jpg",
             vote_average: 8.5,
             quality: "4K",
             description: "A professional killer's life changes after being falsely accused of killing a politician.",
@@ -21,7 +21,7 @@ const movieData = {
         },
         {
             title: "Atharintiki Daaredi",
-            poster_path: "Atharintiki Daaredi.jpg",
+            poster_path: "/public/assets/images/Atharintiki Daaredi.jpg",
             vote_average: 8.2,
             quality: "4K", 
             description: "A grandson tries to reunite his father and grandmother.",
@@ -29,7 +29,7 @@ const movieData = {
         },
         {
             title: "DJ Tillu",
-            poster_path: "dj tillu.jpg",
+            poster_path: "/public/assets/images/dj tillu.jpg",
             vote_average: 7.8,
             quality: "4K",
             description: "A DJ gets entangled in a crime investigation.",
@@ -37,7 +37,7 @@ const movieData = {
         },
         {
             title: "EEGA",
-            poster_path: "EEGA.jpg",
+            poster_path: "/public/assets/images/EEGA.jpg",
             vote_average: 8.4,
             quality: "4K",
             description: "A man reincarnated as a fly seeks revenge against his killer.",
@@ -45,7 +45,7 @@ const movieData = {
         },
         {
             title: "Vedam",
-            poster_path: "Vedam.jpg",
+            poster_path: "/public/assets/images/Vedam.jpg",
             vote_average: 8.3,
             quality: "4K",
             description: "Five different people's lives intersect during a terrorist attack.",
@@ -66,8 +66,7 @@ class MovieUI {
         
         let imagePath;
         if (movie.type === 'local') {
-            // Use absolute path for local images
-            imagePath = `/public/assets/images/${movie.poster_path}`;
+            imagePath = movie.poster_path;  // Already includes full path
         } else {
             imagePath = movie.poster_path 
                 ? `${IMAGE_BASE_URL}${movie.poster_path}`
@@ -80,7 +79,7 @@ class MovieUI {
             <div class="quality-tag">${movie.quality || 'HD'}</div>
             <img src="${imagePath}" 
                  alt="${movie.title}"
-                 onerror="this.onerror=null; this.src='/public/assets/images/no-image.jpg'"
+                 onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}'"
                  loading="lazy">
             <div class="movie-info">
                 <h3>${movie.title}</h3>
