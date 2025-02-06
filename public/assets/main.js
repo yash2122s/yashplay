@@ -10,56 +10,7 @@ const config = {
 
 // Movie data
 const movieData = {
-    movies: [
-        {
-            title: "Athadu",
-            poster_path: "/public/assets/images/Athadu.jpg",
-            vote_average: 8.5,
-            quality: "4K",
-            description: "A professional killer's life changes after being falsely accused of killing a politician.",
-            type: "local"
-        },
-        {
-            title: "Atharintiki Daaredi",
-            poster_path: "/public/assets/images/Atharintiki Daaredi.jpg",
-            vote_average: 8.2,
-            quality: "4K", 
-            description: "A grandson tries to reunite his father and grandmother.",
-            type: "local"
-        },
-        {
-            title: "DJ Tillu",
-            poster_path: "/public/assets/images/dj tillu.jpg",
-            vote_average: 7.8,
-            quality: "4K",
-            description: "A DJ gets entangled in a crime investigation.",
-            type: "local"
-        },
-        {
-            title: "EEGA",
-            poster_path: "/public/assets/images/EEGA.jpg",
-            vote_average: 8.4,
-            quality: "4K",
-            description: "A man reincarnated as a fly seeks revenge against his killer.",
-            type: "local"
-        },
-        {
-            title: "Vedam",
-            poster_path: "/public/assets/images/Vedam.jpg",
-            vote_average: 8.3,
-            quality: "4K",
-            description: "Five different people's lives intersect during a terrorist attack.",
-            type: "local"
-        },
-        {
-            title: "90ml",
-            poster_path: "/public/assets/images/90ml.jpg",
-            vote_average: 7.5,
-            quality: "4K",
-            description: "A fun romantic comedy.",
-            type: "local"
-        }
-    ],
+    movies: [], // Removed local movies
     api: [] // Will be populated from API
 };
 
@@ -72,14 +23,9 @@ class MovieUI {
         const movieCard = document.createElement('div');
         movieCard.className = 'movie-card';
         
-        let imagePath;
-        if (movie.type === 'local') {
-            imagePath = movie.poster_path;  // Using relative path
-        } else {
-            imagePath = movie.poster_path 
-                ? `${IMAGE_BASE_URL}${movie.poster_path}`
-                : FALLBACK_IMAGE;
-        }
+        let imagePath = movie.poster_path 
+            ? `${IMAGE_BASE_URL}${movie.poster_path}`
+            : FALLBACK_IMAGE;
         
         console.log('Creating card for:', movie.title, 'with image:', imagePath);
         
