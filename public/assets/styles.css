@@ -1,0 +1,7 @@
+/* Remove these sections */
+/* Language selector */
+.language-select,
+.language-options,
+.language-option {
+    display: none;
+} 
