@@ -2,10 +2,10 @@
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const FALLBACK_IMAGE = '/assets/images/no-image.jpg';
 
-// Replace the config import with direct constants
+// Replace the config import with environment variables
 const config = {
-    apiKey: __API_KEY__,
-    accessToken: __ACCESS_TOKEN__
+    apiKey: process.env.VITE_API_KEY,
+    accessToken: process.env.VITE_ACCESS_TOKEN
 };
 
 // Movie data
@@ -347,71 +347,3 @@ async function testApiKey() {
     try {
         const response = await fetch(
             `https://api.themoviedb.org/3/movie/now_playing?api_key=${config.apiKey}`
-        );
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ API Key Status: Working');
-            console.log(`📊 Total Movies: ${data.total_results}`);
-            console.log(`📑 Total Pages: ${data.total_pages}`);
-            console.log(`🎬 Movies per page: ${data.results.length}`);
-            console.log(`📅 Date range: ${data.dates.minimum} to ${data.dates.maximum}`);
-        } else {
-            console.error('❌ API Key is not working!');
-            console.error(`Status: ${response.status}`);
-            const error = await response.json();
-            console.error('Error details:', error);
-        }
-    } catch (error) {
-        console.error('❌ Error testing API:', error);
-    }
-}
-
-// Initialize App
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM Content Loaded');
-    
-    // Test API key first
-    await testApiKey();
-    
-    // Fetch English movies from TMDB
-    const englishMovies = await fetchEnglishMovies();
-    console.log('Fetched English movies:', englishMovies.length);
-    movieData.api = englishMovies;
-    
-    // Initialize components
-    initializeNavigation();
-    initializeLanguageSelector();
-    
-    // Load initial page
-    PageManager.loadPage('home');
-
-    // Modal event listeners
-    const modal = document.getElementById('watchModal');
-    const closeButton = document.querySelector('.close-modal');
-    
-    if (closeButton) {
-        closeButton.addEventListener('click', MovieUI.closeModal);
-    }
-    
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) MovieUI.closeModal();
-        });
-    }
-
-    // Navbar scroll effect
-    window.addEventListener('scroll', () => {
-        const navbar = document.querySelector('.navbar');
-        if (navbar) {
-            navbar.classList.toggle('scrolled', window.scrollY > 50);
-        }
-    });
-
-    // Keyboard events
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.classList.contains('active')) {
-            MovieUI.closeModal();
-        }
-    });
-});

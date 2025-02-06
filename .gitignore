@@ -17,4 +17,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Keep all images
-!public/assets/images/ 
+!public/assets/images/
+
+# Environment variables
+.env
+.env.local 
