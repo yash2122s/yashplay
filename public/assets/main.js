@@ -2,10 +2,10 @@
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 const FALLBACK_IMAGE = '/assets/images/no-image.jpg';
 
-// Replace environment variables with defined constants
+// API Configuration
 const config = {
-    apiKey: __API_KEY__,
-    accessToken: __ACCESS_TOKEN__
+    apiKey: '5bfab939b1721316a653757539b52cc4',
+    accessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1YmZhYjkzOWIxNzIxMzE2YTY1Mzc1NzUzOWI1MmNjNCIsIm5iZiI6MTczNDM2NDk1NS42MjQsInN1YiI6IjY3NjA0ZjFiY2RmY2NjYmE2ZmM0ZWYyMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.tWPEyzzDykuZogjns4GUwJ9oBmteE8Fnm0-YtkmgqT8'
 };
 
 // Movie data
@@ -66,7 +66,8 @@ class MovieUI {
         
         let imagePath;
         if (movie.type === 'local') {
-            imagePath = `/assets/images/${movie.poster_path}`;
+            // Use absolute path for local images
+            imagePath = `/public/assets/images/${movie.poster_path}`;
         } else {
             imagePath = movie.poster_path 
                 ? `${IMAGE_BASE_URL}${movie.poster_path}`
@@ -79,8 +80,8 @@ class MovieUI {
             <div class="quality-tag">${movie.quality || 'HD'}</div>
             <img src="${imagePath}" 
                  alt="${movie.title}"
-                 onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}'"
-                 style="width: 100%; height: auto;">
+                 onerror="this.onerror=null; this.src='/public/assets/images/no-image.jpg'"
+                 loading="lazy">
             <div class="movie-info">
                 <h3>${movie.title}</h3>
                 <div class="movie-meta">
@@ -97,10 +98,22 @@ class MovieUI {
     }
 
     static displayMovies(movies, container) {
-        if (!container) return;
+        if (!container) {
+            console.error('Container not found for displaying movies');
+            return;
+        }
+        if (!Array.isArray(movies)) {
+            console.error('Movies must be an array');
+            return;
+        }
+        
         container.innerHTML = '';
         movies.forEach(movie => {
-            container.appendChild(MovieUI.createMovieCard(movie));
+            try {
+                container.appendChild(MovieUI.createMovieCard(movie));
+            } catch (error) {
+                console.error('Error creating movie card:', error);
+            }
         });
     }
 
@@ -143,19 +156,29 @@ class PageManager {
         console.log('Total movies available:', movies.length);
         
         const container = document.querySelector(`#${page}-page`);
-        if (!container) return;
+        if (!container) {
+            console.error(`Container not found for page: ${page}`);
+            return;
+        }
 
         switch(page) {
             case 'home':
-                MovieUI.displayMovies(
-                    movies.slice(0, 12),
-                    container.querySelector('.featured .movie-grid')
-                );
+                const featuredContainer = container.querySelector('.featured .movie-grid');
+                const trendingContainer = container.querySelector('.trending .movie-grid');
                 
-                MovieUI.displayMovies(
-                    trending.slice(0, 12),
-                    container.querySelector('.trending .movie-grid')
-                );
+                if (featuredContainer) {
+                    MovieUI.displayMovies(
+                        movies.slice(0, 12),
+                        featuredContainer
+                    );
+                }
+                
+                if (trendingContainer) {
+                    MovieUI.displayMovies(
+                        trending.slice(0, 12),
+                        trendingContainer
+                    );
+                }
                 break;
 
             case 'movies':
@@ -207,32 +230,31 @@ class PageManager {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM Content Loaded');
     
-    // Initialize components
-    initializeNavigation();
-    
-    // Load initial page
-    PageManager.loadPage('home');
-
-    // Modal event listeners
-    const modal = document.getElementById('watchModal');
-    const closeButton = document.querySelector('.close-modal');
-    
-    if (closeButton) {
-        closeButton.addEventListener('click', MovieUI.closeModal);
-    }
-    
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) MovieUI.closeModal();
-        });
-    }
-
-    // Keyboard events
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.classList.contains('active')) {
-            MovieUI.closeModal();
+    try {
+        // Test API key first
+        const apiWorking = await testApiKey();
+        if (apiWorking) {
+            // Fetch English movies from TMDB
+            const apiMovies = await fetchEnglishMovies();
+            console.log('Fetched API movies:', apiMovies.length);
+            movieData.api = apiMovies;
         }
-    });
+
+        // Initialize the first page load
+        const activePage = document.querySelector('.nav-link.active');
+        if (activePage) {
+            PageManager.loadPage(activePage.dataset.page);
+        } else {
+            PageManager.loadPage('home');
+        }
+
+        // Initialize components
+        initializeNavigation();
+        initializeLanguageSelector();
+        
+    } catch (error) {
+        console.error('Error initializing:', error);
+    }
 });
 
 // Navigation initialization
