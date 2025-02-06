@@ -50,6 +50,14 @@ const movieData = {
             quality: "4K",
             description: "Five different people's lives intersect during a terrorist attack.",
             type: "local"
+        },
+        {
+            title: "90ml",
+            poster_path: "/public/assets/images/90ml.jpg",
+            vote_average: 7.5,
+            quality: "4K",
+            description: "A fun romantic comedy.",
+            type: "local"
         }
     ],
     api: [] // Will be populated from API
@@ -66,7 +74,7 @@ class MovieUI {
         
         let imagePath;
         if (movie.type === 'local') {
-            imagePath = movie.poster_path;  // Already includes full path
+            imagePath = movie.poster_path;  // Using relative path
         } else {
             imagePath = movie.poster_path 
                 ? `${IMAGE_BASE_URL}${movie.poster_path}`
