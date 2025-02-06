@@ -249,21 +249,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM Content Loaded');
     
     try {
-        // Test API key first
-        const apiWorking = await testApiKey();
-        if (apiWorking) {
-            // Fetch both English and Telugu movies
-            const [apiMovies, teluguMovies] = await Promise.all([
-                fetchEnglishMovies(),
-                fetchTeluguMovies()
-            ]);
-            
-            console.log('Fetched API movies:', apiMovies.length);
-            console.log('Fetched Telugu movies:', teluguMovies.length);
-            
-            movieData.api = apiMovies;
-            movieData.teluguMovies = teluguMovies;
-        }
+        // Fetch both English and Telugu movies
+        const [apiMovies, teluguMovies] = await Promise.all([
+            fetchEnglishMovies(),
+            fetchTeluguMovies()
+        ]);
+        
+        console.log('Fetched API movies:', apiMovies.length);
+        console.log('Fetched Telugu movies:', teluguMovies.length);
+        
+        movieData.api = apiMovies;
+        movieData.teluguMovies = teluguMovies;
 
         // Initialize components
         initializeNavigation();
@@ -384,7 +380,7 @@ async function fetchEnglishMovies(pages = 3) { // Fetch first 3 pages by default
 async function fetchTeluguMovies() {
     try {
         const response = await fetch(
-            `https://api.themoviedb.org/3/discover/movie?api_key=${config.apiKey}&with_original_language=te&sort_by=popularity.desc&year=2019`
+            `https://api.themoviedb.org/3/discover/movie?api_key=${config.apiKey}&with_original_language=te&sort_by=popularity.desc`
         );
         
         if (!response.ok) {
@@ -393,6 +389,7 @@ async function fetchTeluguMovies() {
         
         const data = await response.json();
         
+        // Process the Telugu movies
         const processedMovies = data.results.map(movie => ({
             title: movie.title,
             poster_path: movie.poster_path,
@@ -401,7 +398,8 @@ async function fetchTeluguMovies() {
             vote_average: movie.vote_average,
             quality: movie.vote_average > 7 ? "4K" : "HD",
             description: movie.overview,
-            language: "telugu"
+            language: "telugu",
+            original_title: movie.original_title // Added for Telugu titles
         }));
         
         console.log(`Fetched ${processedMovies.length} Telugu movies`);
