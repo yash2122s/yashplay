@@ -1,6 +1,6 @@
 // Constants
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-const FALLBACK_IMAGE = 'assets/images/no-image.jpg';
+const FALLBACK_IMAGE = '/assets/images/no-image.jpg';
 
 // Replace the config import with direct constants
 const config = {
